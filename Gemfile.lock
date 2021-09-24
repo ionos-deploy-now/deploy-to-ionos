@@ -1,0 +1,44 @@
+PATH
+  remote: .
+  specs:
+    deploy-to-ionos (1.0.0)
+      net-ssh (= 6.1.0)
+      passgen (= 1.2.0)
+      rest-client (= 2.1.0)
+      version (= 1.1.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    domain_name (0.5.20190701)
+      unf (>= 0.0.5, < 1.0.0)
+    http-accept (1.7.0)
+    http-cookie (1.0.4)
+      domain_name (~> 0.5)
+    mime-types (3.3.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2021.0901)
+    net-ssh (6.1.0)
+    netrc (0.11.0)
+    passgen (1.2.0)
+    rake (13.0.6)
+    rest-client (2.1.0)
+      http-accept (>= 1.7.0, < 2.0)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 4.0)
+      netrc (~> 0.8)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.8)
+    version (1.1.1)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  bundler (~> 2.0)
+  deploy-to-ionos!
+  rake (~> 13.0)
+
+BUNDLED WITH
+   2.2.16

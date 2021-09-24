@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+STDOUT.sync = true
+
+require 'configuration_parser'
+require 'deploy_now_api'
+require 'size_checker'
+require 'remote_host'
+
+config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: ENV['BOOTSTRAP'] == 'true')
+common_excludes = %w[.deploy-now .git .github]
+deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
+                              api_key: ENV['API_KEY'],
+                              project_id: ENV['PROJECT_ID'],
+                              branch_id: ENV['BRANCH_ID'])
+user = deploy_now.create_temporary_user
+remote_host = RemoteHost.new(user: user, host: ENV['REMOTE_HOST'])
+
+SizeChecker.check(dist_folder: config.dist_folder,
+                  excludes: common_excludes + config.excludes,
+                  allowed_size: ENV['STORAGE_QUOTA'].to_i,
+                  user: user,
+                  host: ENV['REMOTE_HOST'])
+
+remote_host.deploy(dist_folder: config.dist_folder,
+                   excludes: common_excludes + config.excludes)
+
+remote_host.execute(config.remote_commands) unless config.remote_commands.nil?
+
+deploy_now.update_deployment_status
