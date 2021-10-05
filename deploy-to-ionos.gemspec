@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'rspec', '3.10.0'
+  spec.add_development_dependency 'simplecov', '0.21.2'
 
   spec.add_runtime_dependency 'net-ssh', '6.1.0'
   spec.add_runtime_dependency 'passgen', '1.2.0'

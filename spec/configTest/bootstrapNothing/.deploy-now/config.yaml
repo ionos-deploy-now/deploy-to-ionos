@@ -1,0 +1,6 @@
+version: 1.0
+deploy:
+  recurring:
+    excludes:
+      - var
+      - storage/database.sqlite
