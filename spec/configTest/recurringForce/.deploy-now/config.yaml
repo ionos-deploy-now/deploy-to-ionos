@@ -1,0 +1,13 @@
+version: 1.0
+deploy:
+  force: recurring
+  bootstrap:
+    excludes:
+      - var/bootstrap
+    remote-commands:
+      - echo "bootstrap"
+  recurring:
+    excludes:
+      - var/recurring
+    remote-commands:
+      - echo "recurring"

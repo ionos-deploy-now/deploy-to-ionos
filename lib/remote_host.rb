@@ -10,7 +10,7 @@ class RemoteHost
   end
 
   def deploy(options)
-    exclude_options = (options[:excludes] + ['logs']).map { |exclude| "--exclude=#{exclude}" }.join(' ')
+    exclude_options = (options[:excludes]).map { |exclude| "--exclude=#{exclude}" }.join(' ')
     cmd = "rsync -av --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{options[:dist_folder]} #{@user[:username]}@#{@host}:"
     puts cmd
     IO.popen(ENV.merge!({ 'SSHPASS' => @user[:password] }), cmd) do |io|

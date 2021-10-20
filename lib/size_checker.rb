@@ -9,6 +9,7 @@ class SizeChecker
       remote_excludes_size = calculate_remote_excludes_size(options[:user],
                                                             options[:host],
                                                             options[:excludes])
+
       size = deployment_size + remote_excludes_size
 
       if size > options[:allowed_size]
@@ -20,21 +21,23 @@ class SizeChecker
 
     def calculate_local_size(dist_folder, excludes)
       get_entries(dist_folder).reject { |entry| excludes.include? entry }
-                              .map { |entry| File.directory?(entry) ? calculate_dir_size(entry) : File.size(entry) }
+                              .map { |entry| File.directory?(dist_folder + File::SEPARATOR + entry) ?
+                                               calculate_dir_size(dist_folder + File::SEPARATOR + entry) :
+                                               File.size(dist_folder + File::SEPARATOR + entry) }
                               .sum
     end
 
     def calculate_dir_size(dir)
-      size = File.size(dir)
+      size = 0
       get_entries(dir).each do |entry|
-        path = "#{dir}/#{entry}"
+        path = "#{dir}#{File::SEPARATOR}#{entry}"
+
         size += if File.directory? path
                   calculate_dir_size(path)
                 else
                   File.size(path)
                 end
       end
-
       size
     end
 
@@ -42,15 +45,13 @@ class SizeChecker
       Dir.entries(dir).select { |value| value != '.' && value != '..' }
     end
 
-    def calculate_remote_excludes_size(user, host, dirs)
-      return 0 if dirs.empty?
+    def calculate_remote_excludes_size(user, host, excludes)
+      return 0 if excludes.empty?
+
+      exclude_options = (excludes).map { |exclude| "--exclude=#{exclude}" }.join(' ')
 
       Net::SSH.start(host, user[:username], password: user[:password], verify_host_key: :never) do |ssh|
-        ssh.exec!('shopt -s dotglob; du -sb *')
-           .scan(/(\d+)\s+(\S+)/)
-           .select { |_, path| dirs.include? path }
-           .map { |size, _| size.to_i }
-           .sum
+        ssh.exec!("expr $(du -sb . | cut -f1 ) - $(du -sb . #{exclude_options} | cut -f1)").to_i
       end
     end
   end

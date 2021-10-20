@@ -3,7 +3,8 @@ name: Create and publish a Docker image
 on:
   push:
     branches:
-      - 'main'
+      - main
+      - feature/*
     tags:
       - 'v*'
 
@@ -28,8 +29,8 @@ jobs:
 
       - run: |
           bundle install
+          bundle exec rake spec
           bundle exec rake build
-
       - name: Log in to the Container registry
         uses: docker/login-action@v1
         with:

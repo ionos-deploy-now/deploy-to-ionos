@@ -1,0 +1,6 @@
+version: 1.0
+deploy:
+  bootstrap:
+    remote-commands:
+      - ls -al
+      - echo "test"
