@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+ENV['gem_push']  = 'off'
 
 require 'bundler/gem_tasks'
 require 'rake/version_task'
