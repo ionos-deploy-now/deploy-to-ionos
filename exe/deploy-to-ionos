@@ -7,7 +7,7 @@ require 'deploy_now_api'
 require 'size_checker'
 require 'remote_host'
 
-config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: ENV['BOOTSTRAP'] == 'true')
+config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: ENV['BOOTSTRAP_DEPLOY'] == 'true')
 common_excludes = %w[logs .deploy-now .git .github]
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
