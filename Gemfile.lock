@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    deploy-to-ionos (1.0.1)
+    deploy-to-ionos (1.0.2)
       net-ssh (= 6.1.0)
       passgen (= 1.2.0)
       rest-client (= 2.1.0)
