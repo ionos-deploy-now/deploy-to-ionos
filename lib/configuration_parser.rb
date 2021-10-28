@@ -31,10 +31,12 @@ class ConfigurationParser
         if config['deploy'].include? deploy_config
           Configuration.new(dist_folder,
                             config['deploy'][deploy_config]['excludes'] || [],
-                            config['deploy'][deploy_config]['remote-commands'])
+                            config['deploy'][deploy_config]['pre-deployment-remote-commands'],
+                            config['deploy'][deploy_config]['post-deployment-remote-commands'])
         else
           Configuration.new(dist_folder,
                             [],
+                            nil,
                             nil)
         end
       else
@@ -45,21 +47,23 @@ class ConfigurationParser
 end
 
 class Configuration
-  attr_accessor :dist_folder, :excludes, :remote_commands
+  attr_accessor :dist_folder, :excludes, :pre_deployment_remote_commands, :post_deployment_remote_commands
 
-  def initialize(dist_folder, excludes = [], remote_commands = nil)
+  def initialize(dist_folder, excludes = [], pre_deployment_remote_commands = nil, post_deployment_remote_commands = nil)
     @dist_folder = dist_folder
     @excludes = excludes
-    @remote_commands = remote_commands
+    @pre_deployment_remote_commands = pre_deployment_remote_commands
+    @post_deployment_remote_commands = post_deployment_remote_commands
   end
 
   def eql(other)
     self.dist_folder == other.dist_folder &&
       self.excludes == other.excludes &&
-      self.remote_commands == other.remote_commands
+      self.pre_deployment_remote_commands == other.pre_deployment_remote_commands &&
+      self.post_deployment_remote_commands == other.post_deployment_remote_commands
   end
 
   def to_s
-    "{dist: \"#{self.dist_folder}\", excludes: #{self .excludes.to_s}, remote_commands:#{self.remote_commands.to_s}}"
+    "{dist: \"#{self.dist_folder}\", excludes: #{self .excludes.to_s}, pre_deployment_remote_commands:#{self.pre_deployment_remote_commands.to_s}, post_deployment_remote_commands:#{self.post_deployment_remote_commands.to_s}}"
   end
 end

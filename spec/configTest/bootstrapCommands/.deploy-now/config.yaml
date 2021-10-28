@@ -1,6 +1,9 @@
 version: 1.0
 deploy:
   bootstrap:
-    remote-commands:
+    pre-deployment-remote-commands:
       - ls -al
-      - echo "test"
+      - echo "pre"
+    post-deployment-remote-commands:
+      - ls -al
+      - echo "post"

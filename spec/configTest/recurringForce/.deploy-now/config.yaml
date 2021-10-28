@@ -4,10 +4,10 @@ deploy:
   bootstrap:
     excludes:
       - var/bootstrap
-    remote-commands:
+    pre-deployment-remote-commands:
       - echo "bootstrap"
   recurring:
     excludes:
       - var/recurring
-    remote-commands:
+    pre-deployment-remote-commands:
       - echo "recurring"
