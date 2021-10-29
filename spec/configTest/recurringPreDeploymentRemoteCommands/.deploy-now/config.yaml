@@ -1,6 +1,6 @@
 version: 1.0
 deploy:
   recurring:
-    remote-commands:
+    pre-deployment-remote-commands:
       - ls -al
       - echo "test"

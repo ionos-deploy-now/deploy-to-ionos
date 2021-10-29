@@ -22,9 +22,11 @@ SizeChecker.check(dist_folder: config.dist_folder,
                   user: user,
                   host: ENV['REMOTE_HOST'])
 
+remote_host.execute(config.pre_deployment_remote_commands) unless config.pre_deployment_remote_commands.nil?
+
 remote_host.deploy(dist_folder: config.dist_folder,
                    excludes: common_excludes + config.excludes)
 
-remote_host.execute(config.remote_commands) unless config.remote_commands.nil?
+remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
 
 deploy_now.update_deployment_status

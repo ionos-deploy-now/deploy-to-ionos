@@ -64,18 +64,18 @@ RSpec.describe ConfigurationParser do
       expect(config.eql(expected_config)).to eql(true), "Got #{config}\nexpected #{expected_config}"
     end
 
-    it 'returns config recurring with remote_commands' do
-      Dir.chdir('./spec/configTest/recurringCommands')
+    it 'returns config recurring with pre_deployment_remote_commands' do
+      Dir.chdir('./spec/configTest/recurringPreDeploymentRemoteCommands')
       config = ConfigurationParser.parse(dist_folder: "dist", bootstrap: false)
       expected_config = Configuration.new("dist", [], ["ls -al", "echo \"test\""])
 
       expect(config.eql(expected_config)).to eql(true), "Got #{config}\nexpected #{expected_config}"
     end
 
-    it 'returns config bootstrap with remote_commands' do
+    it 'returns config bootstrap with pre- and post_deployment_remote_commands' do
       Dir.chdir('./spec/configTest/bootstrapCommands')
       config = ConfigurationParser.parse(dist_folder: "dist", bootstrap: true)
-      expected_config = Configuration.new("dist", [], ["ls -al", "echo \"test\""])
+      expected_config = Configuration.new("dist", [], ["ls -al", "echo \"pre\""], ["ls -al", "echo \"post\""])
 
       expect(config.eql(expected_config)).to eql(true), "Got #{config}\nexpected #{expected_config}"
     end
@@ -123,4 +123,3 @@ RSpec.describe ConfigurationParser do
     end
   end
 end
-
