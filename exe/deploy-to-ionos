@@ -6,6 +6,7 @@ require 'configuration_parser'
 require 'deploy_now_api'
 require 'size_checker'
 require 'remote_host'
+require 'php_alias'
 
 config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: ENV['BOOTSTRAP_DEPLOY'] == 'true')
 common_excludes = %w[logs .deploy-now .git .github]
@@ -22,11 +23,19 @@ SizeChecker.check(dist_folder: config.dist_folder,
                   user: user,
                   host: ENV['REMOTE_HOST'])
 
+web_space_info = deploy_now.get_web_space_info
+php_alias = PhpAlias.new(php_version: web_space_info['phpVersion'])
+unless php_alias.disabled
+  remote_host.execute(php_alias.create_alias_commands)
+  remote_host.execute(php_alias.activate_alias_commands)
+end
+
 remote_host.execute(config.pre_deployment_remote_commands) unless config.pre_deployment_remote_commands.nil?
 
 remote_host.deploy(dist_folder: config.dist_folder,
                    excludes: common_excludes + config.excludes)
 
+remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
 remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
 
 deploy_now.update_deployment_status

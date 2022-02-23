@@ -42,4 +42,9 @@ class DeployNowApi
     @client["/v1/projects/#{@project_id}/branches/#{@branch_id}/hooks/DEPLOYED"].put(nil,
                                                                                      content_type: 'application/json')
   end
+
+  def get_web_space_info
+    response = @client["/v1/projects/#{@project_id}/branches/#{@branch_id}"].get
+    JSON.parse(response.body)['webSpace']
+  end
 end
