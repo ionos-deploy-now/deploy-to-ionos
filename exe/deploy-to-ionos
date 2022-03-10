@@ -7,6 +7,7 @@ require 'deploy_now_api'
 require 'size_checker'
 require 'remote_host'
 require 'php_alias'
+require 'passgen'
 
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
@@ -16,13 +17,39 @@ branch_info = deploy_now.get_branch_info
 config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: !branch_info.include?(:last_deployment_date))
 common_excludes = %w[logs .deploy-now .git .github]
 
-user = deploy_now.create_temporary_user
-remote_host = RemoteHost.new(user: user, host: branch_info[:ssh_host])
+ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
+
+mutex = Mutex.new
+cv = ConditionVariable.new
+
+events_client = deploy_now.get_user_events do |event|
+  if event.type == :webspace_user
+    data = JSON.parse(event.data)
+    if data['id'] == ssh_user[:account_id]
+      mutex.synchronize do
+        puts "Created temporary user #{data['username']}"
+        ssh_user[:username] = data['username']
+        cv.signal
+      end
+    end
+  end
+end
+
+mutex.synchronize do
+  ssh_user[:account_id] = deploy_now.create_temporary_user(ssh_user[:password])
+
+  cv.wait(mutex, 120)
+  abort 'Failed to create temporary SSH user' unless ssh_user.include?(:username)
+end
+
+events_client.close
+
+remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
 
 SizeChecker.check(dist_folder: config.dist_folder,
                   excludes: common_excludes + config.excludes,
                   allowed_size: branch_info[:storage_quota],
-                  user: user,
+                  user: ssh_user,
                   host: branch_info[:ssh_host])
 
 php_alias = PhpAlias.new(php_version: branch_info[:php_version])
