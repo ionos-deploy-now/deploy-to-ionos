@@ -8,6 +8,8 @@ require 'size_checker'
 require 'remote_host'
 require 'php_alias'
 require 'passgen'
+require 'date'
+require 'template_renderer'
 
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
@@ -18,6 +20,7 @@ config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: !
 common_excludes = %w[logs .deploy-now .git .github]
 
 ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
+database = {}
 
 mutex = Mutex.new
 cv = ConditionVariable.new
@@ -33,16 +36,51 @@ events_client = deploy_now.get_user_events do |event|
       end
     end
   end
+  if event.type == :database_user
+    data = JSON.parse(event.data)
+    if data['id'] == database[:account_id]
+      mutex.synchronize do
+        puts "Created database user #{data['username']}"
+        database[:username] = data['username']
+        cv.signal
+      end
+    end
+  end
 end
 
 mutex.synchronize do
   ssh_user[:account_id] = deploy_now.create_temporary_user(ssh_user[:password])
 
-  cv.wait(mutex, 120)
-  abort 'Failed to create temporary SSH user' unless ssh_user.include?(:username)
+  if branch_info.include? :database
+    database[:host] = branch_info[:database][:host]
+    database[:name] = branch_info[:database][:name]
+    database[:password] = Passgen.generate(length: 30, symbols: false)
+    database[:account_id] = deploy_now.create_database_user(database[:password])
+  end
+
+  start = DateTime.now
+
+  loop do
+    cv.wait(mutex, 120)
+
+    break if ssh_user.include?(:username) && (database.empty? || database.include?(:username))
+
+    if (DateTime.now - start) * 24 * 3600 > 120
+      if database.empty?
+        abort 'Failed to create temporary SSH user'
+      elsif ssh_user.include?(:username)
+        abort 'Failed to create database user'
+      else
+        abort 'Failed to create temporary SSH user and database user'
+      end
+    end
+  end
 end
 
 events_client.close
+
+template_renderer = TemplateRenderer.new(files: ENV['RUNTIME_PLACEHOLDER_FILES'] || '')
+template_renderer.render(branch_info[:app_url], database)
 
 remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
 

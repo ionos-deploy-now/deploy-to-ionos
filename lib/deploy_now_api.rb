@@ -49,6 +49,7 @@ class DeployNowApi
     {
       app_url: is_production_branch ? project['domain'] : branch['webSpace']['siteUrl'],
       last_deployment_date: branch['webSpace']['lastDeploymentDate'],
+      database: branch.include?('database') ? { host: branch['database']['host'], name: branch['database']['name'] } : nil,
       storage_quota: branch['webSpaceQuota']['storageQuota'].to_i,
       ssh_host: branch['webSpace']['sshHost'],
       php_version: branch['webSpace']['phpVersion']
