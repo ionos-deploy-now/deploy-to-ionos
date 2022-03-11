@@ -43,8 +43,17 @@ class DeployNowApi
                                                                                      content_type: 'application/json')
   end
 
-  def get_web_space_info
-    response = @client["/v1/projects/#{@project_id}/branches/#{@branch_id}"].get
-    JSON.parse(response.body)['webSpace']
+  def get_branch_info
+    response = @client["/v1/projects/#{@project_id}"].get
+    project = JSON.parse(response.body)
+    is_production_branch = project['productionBranch']['id'] == @branch_id
+    branch = is_production_branch ? project['productionBranch'] : project['branches'].select { |b| b['id'] == @branch_id }.first
+    {
+      app_url: is_production_branch ? project['domain'] : branch['webSpace']['siteUrl'],
+      last_deployment_date: branch['webSpace']['lastDeploymentDate'],
+      storage_quota: branch['webSpaceQuota']['storageQuota'].to_i,
+      ssh_host: branch['webSpace']['sshHost'],
+      php_version: branch['webSpace']['phpVersion']
+    }.compact
   end
 end
