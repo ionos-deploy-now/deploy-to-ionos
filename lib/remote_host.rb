@@ -13,7 +13,7 @@ class RemoteHost
     exclude_options = (options[:excludes]).map { |exclude| "--exclude=#{exclude}" }.join(' ')
     dist_folder = options[:dist_folder]
     dist_folder += '/' unless dist_folder.end_with? '/'
-    cmd = "rsync -av --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{dist_folder} #{@user[:username]}@#{@host}:"
+    cmd = "rsync -avE --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{dist_folder} #{@user[:username]}@#{@host}:"
     puts cmd
     IO.popen(ENV.merge!({ 'SSHPASS' => @user[:password] }), cmd) do |io|
       io.each do |line|
