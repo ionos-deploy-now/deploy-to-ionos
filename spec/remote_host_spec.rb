@@ -8,7 +8,7 @@ RSpec.describe RemoteHost do
       host = "localhost"
       exclude = %w[logs .deploy-now .git .github css/dummy.css]
       dist = './'
-      cmd = "rsync -av --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" --exclude=logs --exclude=.deploy-now --exclude=.git --exclude=.github --exclude=css/dummy.css ./ a1234@localhost:"
+      cmd = "rsync -avE --delete --rsh=\"/usr/bin/sshpass -e ssh -o StrictHostKeyChecking=no\" --exclude=logs --exclude=.deploy-now --exclude=.git --exclude=.github --exclude=css/dummy.css ./ a1234@localhost:"
 
       io = double(IO)
 
