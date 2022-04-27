@@ -64,6 +64,6 @@ class Configuration
   end
 
   def to_s
-    "{dist: \"#{self.dist_folder}\", excludes: #{self .excludes.to_s}, pre_deployment_remote_commands:#{self.pre_deployment_remote_commands.to_s}, post_deployment_remote_commands:#{self.post_deployment_remote_commands.to_s}}"
+    "{dist: \"#{self.dist_folder}\", excludes: #{self.excludes.to_s}, pre_deployment_remote_commands:#{self.pre_deployment_remote_commands.to_s}, post_deployment_remote_commands:#{self.post_deployment_remote_commands.to_s}}"
   end
 end
