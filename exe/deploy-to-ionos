@@ -10,6 +10,7 @@ require 'php_alias'
 require 'passgen'
 require 'date'
 require 'template_renderer'
+require 'configuration_verifier'
 
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
@@ -18,6 +19,8 @@ deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
 branch_info = deploy_now.get_branch_info
 config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: !branch_info.include?(:last_deployment_date))
 common_excludes = %w[logs .deploy-now .git .github]
+
+ConfigurationVerifier.verify_publish_directory(config.dist_folder)
 
 ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
 database = {}
@@ -91,6 +94,9 @@ SizeChecker.check(dist_folder: config.dist_folder,
                   host: branch_info[:ssh_host])
 
 php_alias = PhpAlias.new(php_version: branch_info[:php_version])
+
+ConfigurationVerifier.validate_php_projects(php_enabled: !php_alias.disabled,
+                                            config: config)
 
 unless php_alias.disabled
   remote_host.execute(php_alias.create_alias_commands)

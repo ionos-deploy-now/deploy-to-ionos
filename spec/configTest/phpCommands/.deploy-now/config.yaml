@@ -1,0 +1,7 @@
+version: 1.0
+deploy:
+  bootstrap:
+    pre-deployment-remote-commands:
+      - php --version
+    post-deployment-remote-commands:
+      - php --version
