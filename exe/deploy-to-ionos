@@ -95,8 +95,8 @@ SizeChecker.check(dist_folder: config.dist_folder,
 
 php_alias = PhpAlias.new(php_version: branch_info[:php_version])
 
-ConfigurationVerifier.validate_php_projects(php_enabled: !php_alias.disabled,
-                                            config: config)
+ConfigurationVerifier.verify_php_commands(php_enabled: !php_alias.disabled,
+                                          config: config)
 
 unless php_alias.disabled
   remote_host.execute(php_alias.create_alias_commands)
