@@ -118,3 +118,6 @@ puts 'Configure cron jobs'
 deploy_now.configure_cron_jobs(config.cron_jobs)
 
 deploy_now.update_deployment_status
+
+puts "Deployment complete :)".colorize(mode: :bold, color: :green)
+puts "Visit your site at: ".colorize(mode: :bold, color: :green) + branch_info[:app_url]
