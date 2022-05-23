@@ -29,4 +29,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'rest-client', '2.1.0'
   spec.add_runtime_dependency 'version', '1.1.1'
   spec.add_runtime_dependency 'ld-eventsource', '2.2.0'
+  spec.add_runtime_dependency 'colorize', '0.8.1'
 end

@@ -16,7 +16,7 @@ RSpec.describe ConfigurationVerifier do
     it 'exit if publish directory is missing' do
       expect { ConfigurationVerifier.verify_publish_directory('./not-existing') }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("Publish directory './not-existing' does not exist in project")
+        expect(error.to_s).to eq("Publish directory './not-existing' does not exist in project".colorize(:red))
       end
     end
     it 'continue if php is used in commands with enabled php' do
@@ -27,14 +27,14 @@ RSpec.describe ConfigurationVerifier do
       Dir.chdir('./spec/configTest/phpPreCommand')
       expect { ConfigurationVerifier.verify_php_commands(php_enabled: false, config: ConfigurationParser.parse(dist_folder: "dist", bootstrap: true)) }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("Php commands defined in pre deployment remote commands although php is disabled")
+        expect(error.to_s).to eq("Php commands defined in pre deployment remote commands although php is disabled".colorize(:red))
       end
     end
     it 'exit if php is used in post commands with disabled php' do
       Dir.chdir('./spec/configTest/phpPostCommand')
       expect { ConfigurationVerifier.verify_php_commands(php_enabled: false, config: ConfigurationParser.parse(dist_folder: "dist", bootstrap: true)) }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("Php commands defined in post deployment remote commands although php is disabled")
+        expect(error.to_s).to eq("Php commands defined in post deployment remote commands although php is disabled".colorize(:red))
       end
     end
   end

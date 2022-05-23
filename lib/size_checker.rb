@@ -13,7 +13,7 @@ class SizeChecker
       size = deployment_size + remote_excludes_size
 
       if size > options[:allowed_size]
-        abort "The deployment is larger (#{size}) than the allowed quota (#{options[:allowed_size]})"
+        abort "The deployment is larger (#{size}) than the allowed quota (#{options[:allowed_size]})".colorize(:red)
       end
     end
 

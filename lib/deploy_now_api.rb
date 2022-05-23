@@ -3,6 +3,7 @@
 require 'rest-client'
 require 'json'
 require 'ld-eventsource'
+require 'colorize'
 
 class DeployNowApi
   def initialize(options)
@@ -18,10 +19,10 @@ class DeployNowApi
     begin
       response = @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/users"].post({ password: password }.to_json,
                                                                                           content_type: 'application/json')
-      abort 'Failed to create temporary user' unless response.code == 200
+      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 200
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
-      abort 'Failed to create temporary user'
+      abort 'Failed to create temporary user'.colorize(:red)
     end
   end
 
@@ -29,10 +30,10 @@ class DeployNowApi
     begin
       response = @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/database/users"].post({ password: password }.to_json,
                                                                                                    content_type: 'application/json')
-      abort 'Failed to create database user' unless response.code == 200
+      abort 'Failed to create database user'.colorize(:red) unless response.code == 200
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
-      abort 'Failed to create database user'
+      abort 'Failed to create database user'.colorize(:red)
     end
   end
 

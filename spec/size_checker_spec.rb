@@ -18,7 +18,7 @@ RSpec.describe SizeChecker do
                                  host: host,
                                  allowed_size: 50) }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("The deployment is larger (1065043) than the allowed quota (50)")
+        expect(error.to_s).to eq("The deployment is larger (1065043) than the allowed quota (50)".colorize(:red))
       end
     end
 

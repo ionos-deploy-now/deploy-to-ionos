@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'colorize'
 
 class ConfigurationParser
   class << self
@@ -10,13 +11,13 @@ class ConfigurationParser
       begin
         config = YAML.safe_load(File.read('.deploy-now/config.yaml'))
       rescue Exception => e
-        abort "unable to pare the .deploy-now/config.yaml config file\n#{e}"
+        abort "unable to pare the .deploy-now/config.yaml config file\n#{e}".colorize(:red)
       end
 
-      abort 'version must be specified in .deploy-now/config.yaml config file' unless config.include? 'version'
+      abort 'version must be specified in .deploy-now/config.yaml config file'.colorize(:red) unless config.include? 'version'
 
       version = config['version'].to_s
-      abort "unknown version: #{version}" unless version == '1.0'
+      abort "unknown version: #{version}".colorize(:red) unless version == '1.0'
 
       parse_1_0(config, options[:dist_folder], options[:bootstrap])
     end
@@ -28,7 +29,7 @@ class ConfigurationParser
       validate_cron_jobs(cron_jobs)
 
       if config.include? 'deploy'
-        abort "only 'bootstrap' or 'recurring' are allowed for deploy.force in .deploy-now/config.yaml" unless config['deploy']['force'].eql?('bootstrap') || config['deploy']['force'].eql?('recurring') || config['deploy']['force'].nil?
+        abort "only 'bootstrap' or 'recurring' are allowed for deploy.force in .deploy-now/config.yaml".colorize(:red) unless config['deploy']['force'].eql?('bootstrap') || config['deploy']['force'].eql?('recurring') || config['deploy']['force'].nil?
         deploy_config = config['deploy']['force'] || (bootstrap ? 'bootstrap' : 'recurring')
 
         if config['deploy'].include? deploy_config
@@ -54,9 +55,9 @@ class ConfigurationParser
     end
 
     def validate_cron_jobs(jobs)
-      abort 'cron-jobs must be a list' unless jobs.is_a? Array
+      abort 'cron-jobs must be a list'.colorize(:red) unless jobs.is_a? Array
       jobs.each do |job|
-        abort "A cron job requires the fields 'command' and 'schedule' in .deploy-now/config.yaml" unless job.include?('command') && job.include?('schedule')
+        abort "A cron job requires the fields 'command' and 'schedule' in .deploy-now/config.yaml".colorize(:red) unless job.include?('command') && job.include?('schedule')
       end
     end
   end

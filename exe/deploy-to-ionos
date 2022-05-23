@@ -11,6 +11,7 @@ require 'passgen'
 require 'date'
 require 'template_renderer'
 require 'configuration_verifier'
+require 'colorize'
 
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
@@ -72,11 +73,11 @@ mutex.synchronize do
 
     if (DateTime.now - start) * 24 * 3600 > 120
       if database.empty?
-        abort "Failed to create temporary SSH user"
+        abort "Failed to create temporary SSH user".colorize(:red)
       elsif ssh_user.include?(:username)
-        abort "Failed to create database user"
+        abort "Failed to create database user".colorize(:red)
       else
-        abort "Failed to create temporary SSH user and database user"
+        abort "Failed to create temporary SSH user and database user".colorize(:red)
       end
     end
   end
