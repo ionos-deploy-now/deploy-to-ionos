@@ -1,0 +1,6 @@
+version: 1.0
+
+runtime:
+  cron-jobs:
+    - schedule: 0 5 * * *
+      mailto: cron@my-domain.tld

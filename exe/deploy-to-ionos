@@ -113,4 +113,7 @@ remote_host.deploy(dist_folder: config.dist_folder,
 remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
 remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
 
+puts 'Configure cron jobs'
+deploy_now.configure_cron_jobs(config.cron_jobs)
+
 deploy_now.update_deployment_status

@@ -53,7 +53,17 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true).eql(Configuration.new("dist", [], nil)) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("only 'bootstrap' or 'recurring are allowed for deploy.force in .deploy-now/config.yaml")
+        expect(error.to_s).to eq("only 'bootstrap' or 'recurring' are allowed for deploy.force in .deploy-now/config.yaml")
+      end
+    end
+
+    it 'abort if invalid cron job is defined' do
+      Dir.chdir('./spec/configTest/invalidCronJob')
+
+      expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true) }
+        .to raise_error(SystemExit) do |error|
+        expect(error.status).to eq(1)
+        expect(error.to_s).to eq("A cron job requires the fields 'command' and 'schedule' in .deploy-now/config.yaml")
       end
     end
 
@@ -119,6 +129,13 @@ RSpec.describe ConfigurationParser do
       Dir.chdir('./spec/configTest/recurringForce')
       config = ConfigurationParser.parse(dist_folder: "dist", bootstrap: true)
       expected_config = Configuration.new("dist", ["var/recurring"], ["echo \"recurring\""])
+      expect(config.eql(expected_config)).to eql(true), "Got #{config}\nexpected #{expected_config}"
+    end
+
+    it 'returns config with cronJobs' do
+      Dir.chdir('./spec/configTest/cronJobs')
+      config = ConfigurationParser.parse(dist_folder: "dist", bootstrap: true)
+      expected_config = Configuration.new("dist", [], nil, nil, [{'command' => 'my-command', 'schedule' => '0 5 * * *'}])
       expect(config.eql(expected_config)).to eql(true), "Got #{config}\nexpected #{expected_config}"
     end
   end

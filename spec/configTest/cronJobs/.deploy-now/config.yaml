@@ -1,0 +1,6 @@
+version: 1.0
+
+runtime:
+  cron-jobs:
+    - command: my-command
+      schedule: 0 5 * * *

@@ -62,4 +62,9 @@ class DeployNowApi
       client.on_event(&block)
     end
   end
+
+  def configure_cron_jobs(jobs)
+    @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/cron-jobs"].put(jobs.to_json,
+                                                                                content_type: 'application/json')
+  end
 end
