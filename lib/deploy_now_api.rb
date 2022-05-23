@@ -29,10 +29,10 @@ class DeployNowApi
     begin
       response = @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/database/users"].post({ password: password }.to_json,
                                                                                                    content_type: 'application/json')
-      abort 'Failed to create temporary user' unless response.code == 200
+      abort 'Failed to create database user' unless response.code == 200
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
-      abort 'Failed to create temporary user'
+      abort 'Failed to create database user'
     end
   end
 

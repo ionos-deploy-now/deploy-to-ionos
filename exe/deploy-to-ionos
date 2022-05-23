@@ -52,9 +52,11 @@ events_client = deploy_now.get_user_events do |event|
 end
 
 mutex.synchronize do
+  puts "Trigger creation of temporary user"
   ssh_user[:account_id] = deploy_now.create_temporary_user(ssh_user[:password])
 
   if branch_info.include? :database
+    puts "Trigger creation of database user"
     database[:host] = branch_info[:database][:host]
     database[:name] = branch_info[:database][:name]
     database[:password] = Passgen.generate(length: 30, symbols: false)
@@ -70,11 +72,11 @@ mutex.synchronize do
 
     if (DateTime.now - start) * 24 * 3600 > 120
       if database.empty?
-        abort 'Failed to create temporary SSH user'
+        abort "Failed to create temporary SSH user"
       elsif ssh_user.include?(:username)
-        abort 'Failed to create database user'
+        abort "Failed to create database user"
       else
-        abort 'Failed to create temporary SSH user and database user'
+        abort "Failed to create temporary SSH user and database user"
       end
     end
   end
