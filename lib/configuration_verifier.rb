@@ -3,18 +3,17 @@
 require 'colorize'
 
 class ConfigurationVerifier
-  def self.verify_publish_directory(publish_directory)
-    abort "Publish directory '#{publish_directory}' does not exist in project".colorize(:red) unless File.directory?(publish_directory)
-  end
-
-  def self.verify_php_commands(options)
+  def self.verify(options)
     php_enabled = options[:php_enabled]
-    pre_deployment_remote_commands = options[:config].pre_deployment_remote_commands
-    post_deployment_remote_commands = options[:config].post_deployment_remote_commands
+    config = options[:config]
+
+    puts Dir.pwd
+    abort "Publish directory '#{config.dist_folder}' does not exist in project".colorize(:red) unless File.directory?(config.dist_folder)
     unless php_enabled
-      abort "Php commands defined in pre deployment remote commands although php is disabled".colorize(:red) if check_commands(pre_deployment_remote_commands)
-      abort "Php commands defined in post deployment remote commands although php is disabled".colorize(:red) if check_commands(post_deployment_remote_commands)
+      abort 'Php commands defined in pre deployment remote commands although php is disabled'.colorize(:red) if check_commands(config.pre_deployment_remote_commands)
+      abort 'Php commands defined in post deployment remote commands although php is disabled'.colorize(:red) if check_commands(config.post_deployment_remote_commands)
     end
+    abort 'Cron jobs are only allowed for PHP projects'.colorize(:red) unless php_enabled or config.cron_jobs.empty?
   end
 
   private

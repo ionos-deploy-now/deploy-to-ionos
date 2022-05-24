@@ -18,10 +18,11 @@ deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               project_id: ENV['PROJECT_ID'],
                               branch_id: ENV['BRANCH_ID'])
 branch_info = deploy_now.get_branch_info
+php_enabled = !branch_info[:php_version].nil?
 config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: !branch_info.include?(:last_deployment_date))
 common_excludes = %w[logs .deploy-now .git .github]
 
-ConfigurationVerifier.verify_publish_directory(config.dist_folder)
+ConfigurationVerifier.verify(config: config, php_enabled: php_enabled)
 
 ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
 database = {}
@@ -98,9 +99,6 @@ SizeChecker.check(dist_folder: config.dist_folder,
 
 php_alias = PhpAlias.new(php_version: branch_info[:php_version])
 
-ConfigurationVerifier.verify_php_commands(php_enabled: !php_alias.disabled,
-                                          config: config)
-
 unless php_alias.disabled
   remote_host.execute(php_alias.create_alias_commands)
   remote_host.execute(php_alias.activate_alias_commands)
@@ -114,8 +112,10 @@ remote_host.deploy(dist_folder: config.dist_folder,
 remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
 remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
 
-puts 'Configure cron jobs'
-deploy_now.configure_cron_jobs(config.cron_jobs)
+if php_enabled
+  puts 'Configure cron jobs'
+  deploy_now.configure_cron_jobs(config.cron_jobs)
+end
 
 deploy_now.update_deployment_status
 
