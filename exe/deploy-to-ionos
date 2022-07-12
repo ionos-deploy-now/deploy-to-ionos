@@ -63,14 +63,14 @@ end
 
 mutex.synchronize do
   puts "Trigger creation of temporary user"
-  ssh_user[:account_id] = deploy_now.create_temporary_user(ssh_user[:password])
+  ssh_user[:account_id] = deploy_now.create_temporary_user(branch_info[:web_space_id], ssh_user[:password])
 
   if branch_info.include? :database
     puts "Trigger creation of database user"
     database[:host] = branch_info[:database][:host]
     database[:name] = branch_info[:database][:name]
     database[:password] = Passgen.generate(length: 30, symbols: false)
-    database[:account_id] = deploy_now.create_database_user(database[:password])
+    database[:account_id] = deploy_now.create_database_user(branch_info[:database][:id], database[:password])
   end
 
   start = DateTime.now

@@ -15,22 +15,23 @@ class DeployNowApi
     @branch_id = options[:branch_id]
   end
 
-  def create_temporary_user(password)
+  def create_temporary_user(space_id, password)
     begin
-      response = @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/users"].post({ password: password }.to_json,
-                                                                                          content_type: 'application/json')
-      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 200
+      response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/spaces/#{space_id}/users"].post({ password: password,
+                                                                                                                           expiration: "PT5M" }.to_json,
+                                                                                                                         content_type: 'application/json')
+      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 202
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
       abort 'Failed to create temporary user'.colorize(:red)
     end
   end
 
-  def create_database_user(password)
+  def create_database_user(database_id, password)
     begin
-      response = @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/database/users"].post({ password: password }.to_json,
-                                                                                                   content_type: 'application/json')
-      abort 'Failed to create database user'.colorize(:red) unless response.code == 200
+      response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/databases/#{database_id}/users"].post({ password: password }.to_json,
+                                                                                                                               content_type: 'application/json')
+      abort 'Failed to create database user'.colorize(:red) unless response.code == 202
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
       abort 'Failed to create database user'.colorize(:red)
@@ -38,34 +39,37 @@ class DeployNowApi
   end
 
   def update_deployment_status
-    @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/hooks/DEPLOYED"].put(nil,
-                                                                                     content_type: 'application/json')
+    @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/deployed"].post(nil,
+                                                                                            content_type: 'application/json')
   end
 
   def get_branch_info
-    response = @client["/v2/projects/#{@project_id}"].get
+    response = @client["/v3/accounts/me/projects/#{@project_id}"].get
     project = JSON.parse(response.body)
     is_production_branch = project['productionBranch']['id'] == @branch_id
-    branch = is_production_branch ? project['productionBranch'] : project['branches'].select { |b| b['id'] == @branch_id }.first
+    branch = JSON.parse(@client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}"].get.body)
     {
-      app_url: is_production_branch ? "https://#{project['domain']}" : branch['webSpace']['siteUrl'],
-      last_deployment_date: branch['webSpace']['lastDeploymentDate'],
-      database: branch.include?('database') ? { host: branch['database']['host'], name: branch['database']['name'] } : nil,
-      storage_quota: branch['webSpaceQuota']['storageQuota'].to_i,
-      ssh_host: branch['webSpace']['sshHost'],
-      php_version: branch['webSpace']['phpVersion']
+      app_url: is_production_branch ? "https://#{project['domain']}" : branch['webSpace']['webSpace']['siteUrl'],
+      last_deployment_date: branch['lastDeploymentDate'],
+      database: branch.include?('database') ? { id: branch['database']['database']['id'],
+                                                host: branch['database']['database']['host'],
+                                                name: branch['database']['database']['name'] } : nil,
+      storage_quota: branch['webSpace']['webSpace']['quota']['storageQuota'].to_i,
+      ssh_host: branch['webSpace']['webSpace']['sshHost'],
+      php_version: branch['webSpace']['webSpace']['phpVersion'],
+      web_space_id: branch['webSpace']['webSpace']['id']
     }.compact
   end
 
   def get_user_events(&block)
-    SSE::Client.new("https://#{@endpoint}/v2/projects/#{@project_id}/branches/#{@branch_id}/events",
+    SSE::Client.new("https://#{@endpoint}/v3/accounts/me/github-action-events?projectId=#{@project_id}&branchId=#{@branch_id}",
                     headers: { authorization: "API-Key #{@api_key}" }) do |client|
       client.on_event(&block)
     end
   end
 
   def configure_cron_jobs(jobs)
-    @client["/v2/projects/#{@project_id}/branches/#{@branch_id}/cron-jobs"].put(jobs.to_json,
-                                                                                content_type: 'application/json')
+    @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/cron-jobs"].put(jobs.to_json,
+                                                                                            content_type: 'application/json')
   end
 end
