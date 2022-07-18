@@ -9,7 +9,6 @@ require 'remote_host'
 require 'php_alias'
 require 'passgen'
 require 'date'
-require 'template_renderer'
 require 'configuration_verifier'
 require 'colorize'
 
@@ -33,7 +32,6 @@ end
 ConfigurationVerifier.verify(config: config, php_enabled: php_enabled)
 
 ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
-database = {}
 
 mutex = Mutex.new
 cv = ConditionVariable.new
@@ -49,29 +47,11 @@ events_client = deploy_now.get_user_events do |event|
       end
     end
   end
-  if event.type == :database_user
-    data = JSON.parse(event.data)
-    if data['id'] == database[:account_id]
-      mutex.synchronize do
-        puts "Created database user #{data['username']}"
-        database[:username] = data['username']
-        cv.signal
-      end
-    end
-  end
 end
 
 mutex.synchronize do
   puts "Trigger creation of temporary user"
   ssh_user[:account_id] = deploy_now.create_temporary_user(branch_info[:web_space_id], ssh_user[:password])
-
-  if branch_info.include? :database
-    puts "Trigger creation of database user"
-    database[:host] = branch_info[:database][:host]
-    database[:name] = branch_info[:database][:name]
-    database[:password] = Passgen.generate(length: 30, symbols: false)
-    database[:account_id] = deploy_now.create_database_user(branch_info[:database][:id], database[:password])
-  end
 
   start = DateTime.now
 
@@ -81,21 +61,12 @@ mutex.synchronize do
     break if ssh_user.include?(:username) && (database.empty? || database.include?(:username))
 
     if (DateTime.now - start) * 24 * 3600 > 120
-      if database.empty?
-        abort "Failed to create temporary SSH user".colorize(:red)
-      elsif ssh_user.include?(:username)
-        abort "Failed to create database user".colorize(:red)
-      else
-        abort "Failed to create temporary SSH user and database user".colorize(:red)
-      end
+      abort "Failed to create temporary SSH user".colorize(:red) unless ssh_user.include?(:username)
     end
   end
 end
 
 events_client.close
-
-template_renderer = TemplateRenderer.new(files: ENV['RUNTIME_PLACEHOLDER_FILES'] || '')
-template_renderer.render(branch_info[:app_url], database)
 
 remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
 

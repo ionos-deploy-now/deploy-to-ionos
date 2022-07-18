@@ -27,17 +27,6 @@ class DeployNowApi
     end
   end
 
-  def create_database_user(database_id, password)
-    begin
-      response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/databases/#{database_id}/users"].post({ password: password }.to_json,
-                                                                                                                               content_type: 'application/json')
-      abort 'Failed to create database user'.colorize(:red) unless response.code == 202
-      JSON.parse(response.body)['id']
-    rescue RestClient::Exception
-      abort 'Failed to create database user'.colorize(:red)
-    end
-  end
-
   def update_deployment_status
     @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/deployed"].post(nil,
                                                                                             content_type: 'application/json')
