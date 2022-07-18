@@ -9,7 +9,6 @@ require 'remote_host'
 require 'php_alias'
 require 'date'
 require 'configuration_verifier'
-require 'colorize'
 require 'json'
 
 deployment_info = JSON.parse(ENV['DEPLOYMENT_INFO'])
@@ -74,8 +73,10 @@ begin
     deploy_now.configure_cron_jobs(config.cron_jobs)
   end
 
-  puts "Deployment complete :)".colorize(mode: :bold, color: :green)
-  puts "Visit your site at: ".colorize(mode: :bold, color: :green) + deployment_info['site-url']
+  File.open(ENV['GITHUB_STEP_SUMMARY'], 'w') do |f|
+    f.write("### Deployment complete :rocket:\n")
+    f.write("Visit your site at: #{deployment_info['site-url']}")
+  end
 ensure
   File.delete(ssh_key_file)
 end
