@@ -10,21 +10,26 @@ require 'php_alias'
 require 'date'
 require 'configuration_verifier'
 require 'colorize'
+require 'json'
+
+deployment_info = JSON.parse(ENV['DEPLOYMENT_INFO'])
 
 deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               api_key: ENV['API_KEY'],
                               project_id: ENV['PROJECT_ID'],
-                              branch_id: ENV['BRANCH_ID'])
-branch_info = deploy_now.get_branch_info
-php_enabled = !branch_info[:php_version].nil?
-dist_folder = ENV['DIST_FOLDER']
-config = ConfigurationParser.parse(dist_folder: dist_folder, bootstrap: !branch_info.include?(:last_deployment_date))
+                              branch_id: ENV['BRANCH_ID'],
+                              deployment_id: ENV['DEPLOYMENT_ID'],
+                              webspace_id: deployment_info['webspace-id'])
+
+php_enabled = !deployment_info['php-version'].nil?
+config = ConfigurationParser.parse(deployment_folder: ENV['DEPLOYMENT_FOLDER'],
+                                   bootstrap: !deployment_info.include?('last-deployment-date'))
 common_excludes = %w[logs .deploy-now .git .github]
 
-if File.symlink?(dist_folder) && !ENV['INPUT_WORKSPACE'].nil?
+if File.symlink?(config.deployment_folder) && !ENV['INPUT_WORKSPACE'].nil?
   workspace = ENV['INPUT_WORKSPACE'].gsub("'", '')
-  if File.readlink(dist_folder).start_with?(workspace)
-    FileUtils.ln_sf(File.readlink(dist_folder).gsub(workspace, ''), dist_folder)
+  if File.readlink(config.deployment_folder).start_with?(workspace)
+    FileUtils.ln_sf(File.readlink(config.deployment_folder).gsub(workspace, ''), config.deployment_folder)
   end
 end
 
@@ -41,15 +46,15 @@ if ENV['HOME'] != '/root'
 end
 
 begin
-  remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
+  remote_host = RemoteHost.new(user: ssh_user, host: deployment_info['remote-host'])
 
-  SizeChecker.check(dist_folder: config.dist_folder,
+  SizeChecker.check(deployment_folder: config.deployment_folder,
                     excludes: common_excludes + config.excludes,
-                    allowed_size: branch_info[:storage_quota],
+                    allowed_size: deployment_info['storage-quota'],
                     user: ssh_user,
-                    host: branch_info[:ssh_host])
+                    host: deployment_info['remote-host'])
 
-  php_alias = PhpAlias.new(php_version: branch_info[:php_version])
+  php_alias = PhpAlias.new(php_version: deployment_info['php-version'])
 
   unless php_alias.disabled
     remote_host.execute(php_alias.create_alias_commands)
@@ -58,7 +63,7 @@ begin
 
   remote_host.execute(config.pre_deployment_remote_commands) unless config.pre_deployment_remote_commands.nil?
 
-  remote_host.deploy(dist_folder: config.dist_folder,
+  remote_host.deploy(deployment_folder: config.deployment_folder,
                      excludes: common_excludes + config.excludes)
 
   remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
@@ -69,10 +74,8 @@ begin
     deploy_now.configure_cron_jobs(config.cron_jobs)
   end
 
-  deploy_now.update_deployment_status
-
   puts "Deployment complete :)".colorize(mode: :bold, color: :green)
-  puts "Visit your site at: ".colorize(mode: :bold, color: :green) + branch_info[:app_url]
+  puts "Visit your site at: ".colorize(mode: :bold, color: :green) + deployment_info['site-url']
 ensure
   File.delete(ssh_key_file)
 end

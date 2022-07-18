@@ -12,7 +12,7 @@ RSpec.describe SizeChecker do
       allow(Net::SSH).to receive(:start).with(host, user[:username], verify_host_key: :never).and_yield(@ssh)
       allow(@ssh).to receive(:exec!).with(sshCommand).and_return("1063923")
 
-      expect { SizeChecker.check(dist_folder: './spec/remoteFolder',
+      expect { SizeChecker.check(deployment_folder: './spec/remoteFolder',
                                  excludes: exclude,
                                  user: user,
                                  host: host,
@@ -32,7 +32,7 @@ RSpec.describe SizeChecker do
       allow(Net::SSH).to receive(:start).with(host, user[:username], verify_host_key: :never).and_yield(@ssh)
       allow(@ssh).to receive(:exec!).with(sshCommand).and_return("1063923")
 
-      expect(SizeChecker.check(dist_folder: './spec/remoteFolder',
+      expect(SizeChecker.check(deployment_folder: './spec/remoteFolder',
                                excludes: exclude,
                                user: user,
                                host: host,

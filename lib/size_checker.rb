@@ -5,7 +5,7 @@ require 'net/ssh'
 class SizeChecker
   class << self
     def check(options)
-      deployment_size = calculate_local_size(options[:dist_folder], options[:excludes])
+      deployment_size = calculate_local_size(options[:deployment_folder], options[:excludes])
       remote_excludes_size = calculate_remote_excludes_size(options[:user],
                                                             options[:host],
                                                             options[:excludes])
@@ -19,11 +19,11 @@ class SizeChecker
 
     private
 
-    def calculate_local_size(dist_folder, excludes)
-      get_entries(dist_folder).reject { |entry| excludes.include? entry }
-                              .map { |entry| File.directory?(dist_folder + File::SEPARATOR + entry) ?
-                                               calculate_dir_size(dist_folder + File::SEPARATOR + entry) :
-                                               File.size(dist_folder + File::SEPARATOR + entry) }
+    def calculate_local_size(deployment_folder, excludes)
+      get_entries(deployment_folder).reject { |entry| excludes.include? entry }
+                              .map { |entry| File.directory?(deployment_folder + File::SEPARATOR + entry) ?
+                                               calculate_dir_size(deployment_folder + File::SEPARATOR + entry) :
+                                               File.size(deployment_folder + File::SEPARATOR + entry) }
                               .sum
     end
 

@@ -7,7 +7,7 @@ RSpec.describe RemoteHost do
       user = { username: "a1234" }
       host = "localhost"
       exclude = %w[logs .deploy-now .git .github css/dummy.css]
-      dist = './'
+      deployment_folder = './'
       cmd = "rsync -avE --delete --rsh=\"/usr/bin/ssh -o StrictHostKeyChecking=no\" --exclude=logs --exclude=.deploy-now --exclude=.git --exclude=.github --exclude=css/dummy.css ./ a1234@localhost:"
 
       io = double(IO)
@@ -16,7 +16,7 @@ RSpec.describe RemoteHost do
       allow(io).to receive(:each).and_yield("rsync response")
 
       remote_host = RemoteHost.new(user: user, host: host)
-      remote_host.deploy(dist_folder: dist,
+      remote_host.deploy(deployment_folder: deployment_folder,
                          excludes: exclude)
 
     end

@@ -6,7 +6,7 @@ require 'colorize'
 class ConfigurationParser
   class << self
     def parse(options)
-      return Configuration.new(options[:dist_folder]) unless File.exist? '.deploy-now/config.yaml'
+      return Configuration.new(options[:deployment_folder]) unless File.exist? '.deploy-now/config.yaml'
 
       begin
         config = YAML.safe_load(File.read('.deploy-now/config.yaml'))
@@ -19,12 +19,12 @@ class ConfigurationParser
       version = config['version'].to_s
       abort "unknown version: #{version}".colorize(:red) unless version == '1.0'
 
-      parse_1_0(config, options[:dist_folder], options[:bootstrap])
+      parse_1_0(config, options[:deployment_folder], options[:bootstrap])
     end
 
     private
 
-    def parse_1_0(config, dist_folder, bootstrap)
+    def parse_1_0(config, deployment_folder, bootstrap)
       cron_jobs = config.include?('runtime') ? config['runtime']['cron-jobs'] : []
       validate_cron_jobs(cron_jobs)
 
@@ -33,20 +33,20 @@ class ConfigurationParser
         deploy_config = config['deploy']['force'] || (bootstrap ? 'bootstrap' : 'recurring')
 
         if config['deploy'].include? deploy_config
-          Configuration.new(dist_folder,
+          Configuration.new(deployment_folder,
                             config['deploy'][deploy_config]['excludes'] || [],
                             config['deploy'][deploy_config]['pre-deployment-remote-commands'],
                             config['deploy'][deploy_config]['post-deployment-remote-commands'],
                             cron_jobs)
         else
-          Configuration.new(dist_folder,
+          Configuration.new(deployment_folder,
                             [],
                             nil,
                             nil,
                             cron_jobs)
         end
       else
-        Configuration.new(dist_folder,
+        Configuration.new(deployment_folder,
                           [],
                           nil,
                           nil,
@@ -64,10 +64,10 @@ class ConfigurationParser
 end
 
 class Configuration
-  attr_accessor :dist_folder, :excludes, :pre_deployment_remote_commands, :post_deployment_remote_commands, :cron_jobs
+  attr_accessor :deployment_folder, :excludes, :pre_deployment_remote_commands, :post_deployment_remote_commands, :cron_jobs
 
-  def initialize(dist_folder, excludes = [], pre_deployment_remote_commands = nil, post_deployment_remote_commands = nil, cron_jobs = [])
-    @dist_folder = dist_folder
+  def initialize(deployment_folder, excludes = [], pre_deployment_remote_commands = nil, post_deployment_remote_commands = nil, cron_jobs = [])
+    @deployment_folder = deployment_folder
     @excludes = excludes
     @pre_deployment_remote_commands = pre_deployment_remote_commands
     @post_deployment_remote_commands = post_deployment_remote_commands
@@ -75,7 +75,7 @@ class Configuration
   end
 
   def eql(other)
-    self.dist_folder == other.dist_folder &&
+    self.deployment_folder == other.deployment_folder &&
       self.excludes == other.excludes &&
       self.pre_deployment_remote_commands == other.pre_deployment_remote_commands &&
       self.post_deployment_remote_commands == other.post_deployment_remote_commands
@@ -84,7 +84,7 @@ class Configuration
 
   def to_s
     """{
-  dist: #{self.dist_folder},
+  deployment_folder: #{self.deployment_folder},
   excludes: #{self.excludes.to_s},
   pre_deployment_remote_commands: #{self.pre_deployment_remote_commands.to_s},
   post_deployment_remote_commands: #{self.post_deployment_remote_commands.to_s},

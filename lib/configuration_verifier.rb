@@ -7,7 +7,7 @@ class ConfigurationVerifier
     php_enabled = options[:php_enabled]
     config = options[:config]
 
-    abort "Publish directory '#{config.dist_folder}' does not exist in project".colorize(:red) unless exists_directory(config.dist_folder)
+    abort "Publish directory '#{config.deployment_folder}' does not exist in project".colorize(:red) unless exists_directory(config.deployment_folder)
     unless php_enabled
       abort 'Php commands defined in pre deployment remote commands although php is disabled'.colorize(:red) if check_commands(config.pre_deployment_remote_commands)
       abort 'Php commands defined in post deployment remote commands although php is disabled'.colorize(:red) if check_commands(config.post_deployment_remote_commands)

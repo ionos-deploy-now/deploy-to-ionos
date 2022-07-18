@@ -11,9 +11,9 @@ class RemoteHost
 
   def deploy(options)
     exclude_options = (options[:excludes]).map { |exclude| "--exclude=#{exclude}" }.join(' ')
-    dist_folder = options[:dist_folder]
-    dist_folder += '/' unless dist_folder.end_with? '/'
-    cmd = "rsync -avE --delete --rsh=\"/usr/bin/ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{dist_folder} #{@user[:username]}@#{@host}:"
+    deployment_folder = options[:deployment_folder]
+    deployment_folder += '/' unless deployment_folder.end_with? '/'
+    cmd = "rsync -avE --delete --rsh=\"/usr/bin/ssh -o StrictHostKeyChecking=no\" #{exclude_options} #{deployment_folder} #{@user[:username]}@#{@host}:"
     puts cmd
     IO.popen(cmd) do |io|
       io.each do |line|
