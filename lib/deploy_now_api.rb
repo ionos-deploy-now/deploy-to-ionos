@@ -2,7 +2,6 @@
 
 require 'rest-client'
 require 'json'
-require 'ld-eventsource'
 require 'colorize'
 
 class DeployNowApi
@@ -13,18 +12,6 @@ class DeployNowApi
     @api_key = options[:api_key]
     @project_id = options[:project_id]
     @branch_id = options[:branch_id]
-  end
-
-  def create_temporary_user(space_id, password)
-    begin
-      response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/spaces/#{space_id}/users"].post({ password: password,
-                                                                                                                           expiration: "PT5M" }.to_json,
-                                                                                                                         content_type: 'application/json')
-      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 202
-      JSON.parse(response.body)['id']
-    rescue RestClient::Exception
-      abort 'Failed to create temporary user'.colorize(:red)
-    end
   end
 
   def update_deployment_status
@@ -48,13 +35,6 @@ class DeployNowApi
       php_version: branch['webSpace']['webSpace']['phpVersion'],
       web_space_id: branch['webSpace']['webSpace']['id']
     }.compact
-  end
-
-  def get_user_events(&block)
-    SSE::Client.new("https://#{@endpoint}/v3/accounts/me/github-action-events?projectId=#{@project_id}&branchId=#{@branch_id}",
-                    headers: { authorization: "API-Key #{@api_key}" }) do |client|
-      client.on_event(&block)
-    end
   end
 
   def configure_cron_jobs(jobs)

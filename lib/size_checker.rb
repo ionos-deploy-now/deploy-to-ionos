@@ -50,7 +50,7 @@ class SizeChecker
 
       exclude_options = (excludes).map { |exclude| "--exclude=#{exclude}" }.join(' ')
 
-      Net::SSH.start(host, user[:username], password: user[:password], verify_host_key: :never) do |ssh|
+      Net::SSH.start(host, user[:username], verify_host_key: :never) do |ssh|
         ssh.exec!("expr $(du -sb . | cut -f1 ) - $(du -sb . #{exclude_options} | cut -f1)").to_i
       end
     end

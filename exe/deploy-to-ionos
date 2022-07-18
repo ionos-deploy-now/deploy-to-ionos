@@ -7,7 +7,6 @@ require 'deploy_now_api'
 require 'size_checker'
 require 'remote_host'
 require 'php_alias'
-require 'passgen'
 require 'date'
 require 'configuration_verifier'
 require 'colorize'
@@ -31,72 +30,49 @@ end
 
 ConfigurationVerifier.verify(config: config, php_enabled: php_enabled)
 
-ssh_user = { password: Passgen.generate(length: 30, symbols: true) }
+ssh_user = { username: ENV['SSH_USER'] }
+ssh_dir = "#{ENV['HOME']}/.ssh"
+FileUtils.mkdir_p(ssh_dir)
+ssh_key_file = "#{ssh_dir}/id_ed25519"
+File.write(ssh_key_file, ENV['SSH_KEY'])
+File.chmod(0500, ssh_key_file)
+if ENV['HOME'] != '/root'
+  FileUtils.ln_sf(ssh_dir, '/root/.ssh')
+end
 
-mutex = Mutex.new
-cv = ConditionVariable.new
+begin
+  remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
 
-events_client = deploy_now.get_user_events do |event|
-  if event.type == :webspace_user
-    data = JSON.parse(event.data)
-    if data['id'] == ssh_user[:account_id]
-      mutex.synchronize do
-        puts "Created temporary user #{data['username']}"
-        ssh_user[:username] = data['username']
-        cv.signal
-      end
-    end
+  SizeChecker.check(dist_folder: config.dist_folder,
+                    excludes: common_excludes + config.excludes,
+                    allowed_size: branch_info[:storage_quota],
+                    user: ssh_user,
+                    host: branch_info[:ssh_host])
+
+  php_alias = PhpAlias.new(php_version: branch_info[:php_version])
+
+  unless php_alias.disabled
+    remote_host.execute(php_alias.create_alias_commands)
+    remote_host.execute(php_alias.activate_alias_commands)
   end
-end
 
-mutex.synchronize do
-  puts "Trigger creation of temporary user"
-  ssh_user[:account_id] = deploy_now.create_temporary_user(branch_info[:web_space_id], ssh_user[:password])
+  remote_host.execute(config.pre_deployment_remote_commands) unless config.pre_deployment_remote_commands.nil?
 
-  start = DateTime.now
+  remote_host.deploy(dist_folder: config.dist_folder,
+                     excludes: common_excludes + config.excludes)
 
-  loop do
-    cv.wait(mutex, 120)
+  remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
+  remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
 
-    break if ssh_user.include?(:username) && (database.empty? || database.include?(:username))
-
-    if (DateTime.now - start) * 24 * 3600 > 120
-      abort "Failed to create temporary SSH user".colorize(:red) unless ssh_user.include?(:username)
-    end
+  if php_enabled
+    puts 'Configure cron jobs'
+    deploy_now.configure_cron_jobs(config.cron_jobs)
   end
+
+  deploy_now.update_deployment_status
+
+  puts "Deployment complete :)".colorize(mode: :bold, color: :green)
+  puts "Visit your site at: ".colorize(mode: :bold, color: :green) + branch_info[:app_url]
+ensure
+  File.delete(ssh_key_file)
 end
-
-events_client.close
-
-remote_host = RemoteHost.new(user: ssh_user, host: branch_info[:ssh_host])
-
-SizeChecker.check(dist_folder: config.dist_folder,
-                  excludes: common_excludes + config.excludes,
-                  allowed_size: branch_info[:storage_quota],
-                  user: ssh_user,
-                  host: branch_info[:ssh_host])
-
-php_alias = PhpAlias.new(php_version: branch_info[:php_version])
-
-unless php_alias.disabled
-  remote_host.execute(php_alias.create_alias_commands)
-  remote_host.execute(php_alias.activate_alias_commands)
-end
-
-remote_host.execute(config.pre_deployment_remote_commands) unless config.pre_deployment_remote_commands.nil?
-
-remote_host.deploy(dist_folder: config.dist_folder,
-                   excludes: common_excludes + config.excludes)
-
-remote_host.execute(php_alias.activate_alias_commands) unless php_alias.disabled
-remote_host.execute(config.post_deployment_remote_commands) unless config.post_deployment_remote_commands.nil?
-
-if php_enabled
-  puts 'Configure cron jobs'
-  deploy_now.configure_cron_jobs(config.cron_jobs)
-end
-
-deploy_now.update_deployment_status
-
-puts "Deployment complete :)".colorize(mode: :bold, color: :green)
-puts "Visit your site at: ".colorize(mode: :bold, color: :green) + branch_info[:app_url]

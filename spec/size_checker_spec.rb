@@ -3,13 +3,13 @@ require "size_checker"
 RSpec.describe SizeChecker do
   describe 'check' do
     it 'aborts if size exceeds allowed_size' do
-      user = { username: "a1234", password: "password" }
+      user = { username: "a1234" }
       host = "localhost"
       exclude = %w[logs .deploy-now .git .github css/dummy.css]
       sshCommand = 'expr $(du -sb . | cut -f1 ) - $(du -sb . --exclude=logs --exclude=.deploy-now --exclude=.git --exclude=.github --exclude=css/dummy.css | cut -f1)'
 
       @ssh = double(Net::SSH)
-      allow(Net::SSH).to receive(:start).with(host, user[:username], password: user[:password], verify_host_key: :never).and_yield(@ssh)
+      allow(Net::SSH).to receive(:start).with(host, user[:username], verify_host_key: :never).and_yield(@ssh)
       allow(@ssh).to receive(:exec!).with(sshCommand).and_return("1063923")
 
       expect { SizeChecker.check(dist_folder: './spec/remoteFolder',
@@ -23,13 +23,13 @@ RSpec.describe SizeChecker do
     end
 
     it 'returns nil if size smaller than allowed size_size' do
-      user = { username: "a1234", password: "password" }
+      user = { username: "a1234" }
       host = "localhost"
       exclude = %w[logs .deploy-now .git .github css/dummy.css]
       sshCommand = 'expr $(du -sb . | cut -f1 ) - $(du -sb . --exclude=logs --exclude=.deploy-now --exclude=.git --exclude=.github --exclude=css/dummy.css | cut -f1)'
 
       @ssh = double(Net::SSH)
-      allow(Net::SSH).to receive(:start).with(host, user[:username], password: user[:password], verify_host_key: :never).and_yield(@ssh)
+      allow(Net::SSH).to receive(:start).with(host, user[:username], verify_host_key: :never).and_yield(@ssh)
       allow(@ssh).to receive(:exec!).with(sshCommand).and_return("1063923")
 
       expect(SizeChecker.check(dist_folder: './spec/remoteFolder',
