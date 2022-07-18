@@ -32,7 +32,7 @@ class RemoteHost
         ssh.exec!(command, status: status) do |_, _, data|
           puts data
         end
-        abort 'Error running the remote command'.colorize(:red) unless status[:exit_code].zero?
+        abort '::error ::Error running the remote command' unless status[:exit_code].zero?
       end
     end
   end

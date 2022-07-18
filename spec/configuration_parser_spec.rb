@@ -23,7 +23,7 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true).eql(Configuration.new("dist", [], nil)) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("unable to pare the .deploy-now/config.yaml config file\n(<unknown>): found unexpected end of stream while scanning a quoted scalar at line 1 column 7".colorize(:red))
+        expect(error.to_s).to eq("::error file=.deploy-now/config.yaml::unable to parse the .deploy-now/config.yaml config file\n(<unknown>): found unexpected end of stream while scanning a quoted scalar at line 1 column 7")
       end
     end
 
@@ -33,7 +33,7 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true).eql(Configuration.new("dist", [], nil)) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("version must be specified in .deploy-now/config.yaml config file".colorize(:red))
+        expect(error.to_s).to eq("::error file=.deploy-now/config.yaml::version must be specified in .deploy-now/config.yaml config file")
       end
     end
 
@@ -43,7 +43,7 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true).eql(Configuration.new("dist", [], nil)) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("unknown version: 0.1".colorize(:red))
+        expect(error.to_s).to eq("::error file=.deploy-now/config.yaml::unknown version: 0.1")
       end
     end
 
@@ -53,7 +53,7 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true).eql(Configuration.new("dist", [], nil)) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("only 'bootstrap' or 'recurring' are allowed for deploy.force in .deploy-now/config.yaml".colorize(:red))
+        expect(error.to_s).to eq("::error file=.deploy-now/config.yaml::only 'bootstrap' or 'recurring' are allowed for deploy.force in .deploy-now/config.yaml")
       end
     end
 
@@ -63,7 +63,7 @@ RSpec.describe ConfigurationParser do
       expect { ConfigurationParser.parse(dist_folder: "dist", bootstrap: true) }
         .to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
-        expect(error.to_s).to eq("A cron job requires the fields 'command' and 'schedule' in .deploy-now/config.yaml".colorize(:red))
+        expect(error.to_s).to eq("::error file=.deploy-now/config.yaml::A cron job requires the fields 'command' and 'schedule' in .deploy-now/config.yaml")
       end
     end
 
