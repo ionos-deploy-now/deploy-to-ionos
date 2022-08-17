@@ -13,6 +13,9 @@ RSpec.describe ConfigurationVerifier do
     it 'continue if publish directory exists' do
       expect { ConfigurationVerifier.verify(php_enabled: false, config: ConfigurationParser.parse(dist_folder: "./spec", bootstrap: true)) }.not_to raise_error(SystemExit)
     end
+    it 'continue if publish directory is a symlink and exists' do
+      expect { ConfigurationVerifier.verify(php_enabled: false, config: ConfigurationParser.parse(dist_folder: "./spec/symlink", bootstrap: true)) }.not_to raise_error(SystemExit)
+    end
     it 'exit if publish directory is missing' do
       expect { ConfigurationVerifier.verify(php_enabled: false, config: ConfigurationParser.parse(dist_folder: "./not-existing", bootstrap: true)) }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
