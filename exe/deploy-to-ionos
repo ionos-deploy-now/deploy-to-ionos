@@ -19,8 +19,16 @@ deploy_now = DeployNowApi.new(endpoint: ENV['SERVICE_HOST'],
                               branch_id: ENV['BRANCH_ID'])
 branch_info = deploy_now.get_branch_info
 php_enabled = !branch_info[:php_version].nil?
-config = ConfigurationParser.parse(dist_folder: ENV['DIST_FOLDER'], bootstrap: !branch_info.include?(:last_deployment_date))
+dist_folder = ENV['DIST_FOLDER']
+config = ConfigurationParser.parse(dist_folder: dist_folder, bootstrap: !branch_info.include?(:last_deployment_date))
 common_excludes = %w[logs .deploy-now .git .github]
+
+if File.symlink?(dist_folder) && !ENV['INPUT_WORKSPACE'].nil?
+  workspace = ENV['INPUT_WORKSPACE'].gsub("'", '')
+  if File.readlink(dist_folder).start_with?(workspace)
+    FileUtils.ln_sf(File.readlink(dist_folder).gsub(workspace, ''), dist_folder)
+  end
+end
 
 ConfigurationVerifier.verify(config: config, php_enabled: php_enabled)
 

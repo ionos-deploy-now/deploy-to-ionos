@@ -1,14 +1,12 @@
 # frozen_string_literal: true
 
 require 'colorize'
-require 'pathname'
 
 class ConfigurationVerifier
   def self.verify(options)
     php_enabled = options[:php_enabled]
     config = options[:config]
 
-    puts Dir.pwd
     abort "Publish directory '#{config.dist_folder}' does not exist in project".colorize(:red) unless exists_directory(config.dist_folder)
     unless php_enabled
       abort 'Php commands defined in pre deployment remote commands although php is disabled'.colorize(:red) if check_commands(config.pre_deployment_remote_commands)
@@ -24,7 +22,7 @@ class ConfigurationVerifier
   end
 
   def self.exists_directory(directory)
-    File.directory?(directory) || (File.symlink?(directory) && File.directory?(Pathname.new(directory).realpath))
+    File.directory?(directory) || (File.symlink?(directory) && File.directory?(File.readlink(directory)))
   end
 end
 
