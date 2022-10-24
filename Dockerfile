@@ -1,4 +1,4 @@
-FROM alpine:3.14.2
+FROM alpine:3.16.2
 
 COPY pkg/*.gem /tmp/
 
