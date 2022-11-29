@@ -44,20 +44,19 @@ class DeployNowApi
   end
 
   def get_branch_info
-    response = @client["/v3/accounts/me/projects/#{@project_id}"].get
-    project = JSON.parse(response.body)
-    is_production_branch = project['productionBranch']['id'] == @branch_id
-    branch = JSON.parse(@client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}"].get.body)
+    deployments = JSON.parse(@client["/v4/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/deployments"].get.body)
+    abort "v1 of this action doesn't support multi deployments".colorize(:red) if deployments['total'] > 1
+    deployment = JSON.parse(@client["/v4/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/deployments/#{deployments['values'].first['id']}"].get.body)
     {
-      app_url: is_production_branch ? "https://#{project['domain']}" : branch['webSpace']['webSpace']['siteUrl'],
-      last_deployment_date: branch['lastDeploymentDate'],
-      database: branch.include?('database') ? { id: branch['database']['database']['id'],
-                                                host: branch['database']['database']['host'],
-                                                name: branch['database']['database']['name'] } : nil,
-      storage_quota: branch['webSpace']['webSpace']['quota']['storageQuota'].to_i,
-      ssh_host: branch['webSpace']['webSpace']['sshHost'],
-      php_version: branch['webSpace']['webSpace']['phpVersion'],
-      web_space_id: branch['webSpace']['webSpace']['id']
+      app_url: "https://#{deployment['domain']['name']}",
+      last_deployment_date: deployment['state']['lastDeployedDate'],
+      database: deployment.include?('database') ? { id: deployment['database']['database']['id'],
+                                                host: deployment['database']['database']['host'],
+                                                name: deployment['database']['database']['name'] } : nil,
+      storage_quota: deployment['webspace']['webspace']['quota']['storageQuota'].to_i,
+      ssh_host: deployment['webspace']['webspace']['sshHost'],
+      php_version: deployment['webspace']['webspace']['phpVersion'],
+      web_space_id: deployment['webspace']['webspace']['id']
     }.compact
   end
 
