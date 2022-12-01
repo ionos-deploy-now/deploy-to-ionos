@@ -51,12 +51,13 @@ class DeployNowApi
       app_url: "https://#{deployment['domain']['name']}",
       last_deployment_date: deployment['state']['lastDeployedDate'],
       database: deployment.include?('database') ? { id: deployment['database']['database']['id'],
-                                                host: deployment['database']['database']['host'],
-                                                name: deployment['database']['database']['name'] } : nil,
+                                                    host: deployment['database']['database']['host'],
+                                                    name: deployment['database']['database']['name'] } : nil,
       storage_quota: deployment['webspace']['webspace']['quota']['storageQuota'].to_i,
       ssh_host: deployment['webspace']['webspace']['sshHost'],
       php_version: deployment['webspace']['webspace']['phpVersion'],
-      web_space_id: deployment['webspace']['webspace']['id']
+      web_space_id: deployment['webspace']['webspace']['id'],
+      deployment_id: deployment['id']
     }.compact
   end
 
@@ -67,8 +68,8 @@ class DeployNowApi
     end
   end
 
-  def configure_cron_jobs(jobs)
-    @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/cron-jobs"].put(jobs.to_json,
-                                                                                            content_type: 'application/json')
+  def configure_cron_jobs(deployment_id, webspace_id, jobs)
+    @client["/v4/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/deployments/#{deployment_id}/webspaces/#{webspace_id}/cron-jobs"].put(jobs.to_json,
+                                                                                                                                                  content_type: 'application/json')
   end
 end

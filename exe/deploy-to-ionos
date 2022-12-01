@@ -122,7 +122,7 @@ remote_host.execute(config.post_deployment_remote_commands) unless config.post_d
 
 if php_enabled
   puts 'Configure cron jobs'
-  deploy_now.configure_cron_jobs(config.cron_jobs)
+  deploy_now.configure_cron_jobs(branch_info[:deployment_id], branch_info[:web_space_id], config.cron_jobs)
 end
 
 deploy_now.update_deployment_status

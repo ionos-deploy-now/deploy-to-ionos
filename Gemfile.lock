@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    deploy-to-ionos (1.1.5)
+    deploy-to-ionos (1.1.6)
       colorize (= 0.8.1)
       ld-eventsource (= 2.2.0)
       net-ssh (= 6.1.0)
