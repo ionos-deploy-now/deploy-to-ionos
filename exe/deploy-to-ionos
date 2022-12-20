@@ -53,6 +53,8 @@ begin
                     user: ssh_user,
                     host: deployment_info['remote-host'])
 
+  remote_host.execute(['find . -mindepth 1 -maxdepth 1 -not -name logs | xargs -r rm -r']) unless deployment_info.include?('last-deployment-date')
+
   php_alias = PhpAlias.new(php_version: deployment_info['php-version'])
 
   unless php_alias.disabled
