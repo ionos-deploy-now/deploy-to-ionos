@@ -105,7 +105,7 @@ SizeChecker.check(dist_folder: config.dist_folder,
                   user: ssh_user,
                   host: branch_info[:ssh_host])
 
-remote_host.execute(['find . -mindepth 1 -maxdepth 1 -not -name logs | xargs rm -r']) unless branch_info.include?(:last_deployment_date)
+remote_host.execute(['find . -mindepth 1 -maxdepth 1 -not -name logs | xargs -r rm -r']) unless branch_info.include?(:last_deployment_date)
 
 php_alias = PhpAlias.new(php_version: branch_info[:php_version])
 
