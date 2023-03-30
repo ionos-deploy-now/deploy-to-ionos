@@ -20,7 +20,7 @@ class DeployNowApi
       response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/spaces/#{space_id}/users"].post({ password: password,
                                                                                                                            expiration: "PT5M" }.to_json,
                                                                                                                          content_type: 'application/json')
-      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 202
+      abort 'Failed to create temporary user'.colorize(:red) unless response.code == 200 or response.code == 202
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
       abort 'Failed to create temporary user'.colorize(:red)
@@ -31,7 +31,7 @@ class DeployNowApi
     begin
       response = @client["/v3/accounts/me/projects/#{@project_id}/branches/#{@branch_id}/databases/#{database_id}/users"].post({ password: password }.to_json,
                                                                                                                                content_type: 'application/json')
-      abort 'Failed to create database user'.colorize(:red) unless response.code == 202
+      abort 'Failed to create database user'.colorize(:red) unless response.code == 200 or response.code == 202
       JSON.parse(response.body)['id']
     rescue RestClient::Exception
       abort 'Failed to create database user'.colorize(:red)
