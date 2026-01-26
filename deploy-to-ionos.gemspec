@@ -19,14 +19,14 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler', '~> 2.0'
+  spec.add_development_dependency 'bundler', '>= 2.5'
   spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'rspec', '3.10.0'
-  spec.add_development_dependency 'simplecov', '0.21.2'
+  spec.add_development_dependency 'rspec', '~> 3.13'
+  spec.add_development_dependency 'simplecov', '~> 0.22'
+  spec.add_development_dependency 'version', '~> 1.1'
 
-  spec.add_runtime_dependency 'net-ssh', '6.1.0'
-  spec.add_runtime_dependency 'rest-client', '2.1.0'
-  spec.add_runtime_dependency 'version', '1.1.1'
-  spec.add_runtime_dependency 'ed25519', '1.3.0'
-  spec.add_runtime_dependency 'bcrypt_pbkdf', '1.1.0'
+  spec.add_runtime_dependency 'net-ssh', '~> 7.3'
+  spec.add_runtime_dependency 'rest-client', '~> 2.1'
+  spec.add_runtime_dependency 'ed25519', '~> 1.3'
+  spec.add_runtime_dependency 'bcrypt_pbkdf', '~> 1.1'
 end
