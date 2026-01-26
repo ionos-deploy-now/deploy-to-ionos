@@ -29,7 +29,9 @@ jobs:
 
       - run: |
           bundle install
+          echo "::stop-commands::STOP_TOKEN"
           bundle exec rake spec
+          echo "::STOP_TOKEN::"
           bundle exec rake build
       - name: Log in to the Container registry
         uses: docker/login-action@v3
